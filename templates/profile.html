@@ -1,0 +1,411 @@
+ {% extends "base.html" %}
+{% block title %}Anime FINDER{% endblock %}
+{% block content %}
+
+ <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --crimson: #8B0000;
+      --blood:   #C41E3A;
+      --gold:    #D4AF37;
+      --gold-l:  #FFD700;
+      --ink:     #0a0a0a;
+      --text:    #e8e0d0;
+    }
+    body{
+        background: var(--ink);
+        font-family: 'Rajdhani', sans-serif;
+        color: var(--text);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+    }   
+    .ds-root{
+    width:100%;
+    min-height:100vh;
+    max-width:none;
+    background:#0a0a0a;
+    position:relative;
+    overflow:hidden;
+   }
+   .profile-body{
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px;
+    }
+    .ds-root::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 40% at 20% 10%, rgba(139,0,0,.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 30% at 80% 80%, rgba(30,10,80,.18) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* ── Flame bar ── */
+    .flame-bar { height: 3px; background: linear-gradient(90deg, var(--ink), var(--crimson), var(--blood), var(--gold), var(--blood), var(--crimson), var(--ink)); animation: flicker 3s ease-in-out infinite; }
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.6} }
+
+    /* ── Header band ── */
+    .header-band { display:flex; align-items:center; justify-content:space-between; padding:18px 28px 14px; border-bottom:1px solid rgba(212,175,55,.12); }
+    .corps-label { font-size:10px; letter-spacing:5px; color:rgba(212,175,55,.55); text-transform:uppercase; }
+    .corps-title { font-family:'Cinzel Decorative',cursive; font-size:13px; color:var(--gold); letter-spacing:2px; }
+    .rank-badge { background:rgba(139,0,0,.4); border:1px solid rgba(196,30,58,.5); padding:4px 14px; font-size:10px; letter-spacing:3px; color:var(--gold-l); text-transform:uppercase; }
+
+    /* ── Body ── */
+    .profile-body { padding:28px 28px 0; position:relative; z-index:2; }
+
+    /* ── Identity ── */
+    .identity-row { display:grid; grid-template-columns:auto 1fr auto; gap:24px; align-items:center; padding-bottom:28px; border-bottom:1px solid rgba(212,175,55,.12); margin-bottom:28px; }
+    .avatar-wrap { position:relative; width:100px; height:100px; flex-shrink:0; }
+    .avatar-wrap svg { position:absolute; inset:0; width:100%; height:100%; animation:spin 18s linear infinite; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .avatar-inner { position:absolute; inset:12px; border-radius:50%; background:rgba(139,0,0,.2); border:1.5px solid rgba(212,175,55,.35); display:flex; align-items:center; justify-content:center; font-size:28px; overflow:hidden; }
+    .avatar-inner img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .hunter-name { font-family:'Cinzel Decorative',cursive; font-size:22px; color:var(--gold-l); letter-spacing:2px; line-height:1.2; }
+    .hunter-email { margin-top:4px; font-size:11px; color:rgba(212,175,55,.45); letter-spacing:2px; }
+    .hunter-sub { margin-top:4px; font-size:11px; letter-spacing:4px; color:rgba(212,175,55,.5); text-transform:uppercase; }
+    .role-badge { display:inline-block; margin-top:8px; padding:3px 10px; font-size:9px; letter-spacing:3px; text-transform:uppercase; border:1px solid; }
+    .role-badge.admin { color:#C41E3A; border-color:rgba(196,30,58,.5); background:rgba(139,0,0,.25); }
+    .role-badge.user  { color:var(--gold); border-color:rgba(212,175,55,.3); background:rgba(212,175,55,.05); }
+    .mark-icon { font-size:36px; opacity:.15; filter:sepia(1); }
+
+    /* ── Stats ── */
+    .stats-grid{grid-template-columns:repeat(4,minmax(220px,1fr));}
+    .stat-card { background:rgba(255,255,255,.03); border:1px solid rgba(212,175,55,.15); border-top:2px solid rgba(196,30,58,.6); padding:14px 12px 12px; text-align:center; }
+    .stat-card .ti { font-size:13px; color:rgba(196,30,58,.8); display:block; margin-bottom:6px; }
+    .stat-val { font-family:'Cinzel Decorative',cursive; font-size:22px; color:var(--gold-l); line-height:1; }
+    .stat-label { margin-top:6px; font-size:9px; letter-spacing:3px; color:rgba(212,175,55,.5); text-transform:uppercase; }
+
+    /* ── Section divider ── */
+    .section-divider { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+    .sec-line { flex:1; height:1px; background:linear-gradient(90deg,rgba(212,175,55,.3),transparent); }
+    .sec-title { font-size:9px; letter-spacing:4px; color:rgba(212,175,55,.6); text-transform:uppercase; white-space:nowrap; }
+    .sec-glyph { font-size:14px; color:rgba(212,175,55,.25); }
+
+    /* ── Info cards ── */
+    .info-row{grid-template-columns:repeat(4,1fr);}
+    .info-card { background:rgba(255,255,255,.025); border:1px solid rgba(212,175,55,.15); border-left:3px solid var(--crimson); padding:14px 16px; }
+    .ic-title { font-size:12px; letter-spacing:2px; color:var(--gold); text-transform:uppercase; font-weight:700; margin-bottom:4px; }
+    .ic-val { font-size:13px; color:rgba(232,224,208,.7); letter-spacing:1px; }
+
+    /* ── XP bar ── */
+    .xp-section { margin-bottom:28px; }
+    .xp-bar-wrap { background:rgba(255,255,255,.05); height:6px; margin-top:10px; border:1px solid rgba(212,175,55,.1); }
+    .xp-bar-fill { height:100%; background:linear-gradient(90deg,var(--crimson),var(--blood),var(--gold)); position:relative; }
+    .xp-bar-fill::after { content:''; position:absolute; right:0;top:0;bottom:0; width:2px; background:var(--gold-l); }
+    .xp-labels { display:flex; justify-content:space-between; margin-top:6px; font-size:9px; letter-spacing:3px; color:rgba(212,175,55,.4); text-transform:uppercase; }
+
+    /* ── Recent history ── */
+    .history-list { margin-bottom:28px; }
+    .history-item { display:flex; align-items:center; gap:14px; padding:10px 0; border-bottom:1px solid rgba(212,175,55,.07); }
+    .history-item:last-child { border-bottom:none; }
+    .hist-img { width:40px; height:55px; object-fit:cover; border:1px solid rgba(212,175,55,.2); flex-shrink:0; background:rgba(139,0,0,.2); }
+    .hist-info { flex:1; min-width:0; }
+    .hist-name { font-size:13px; color:rgba(232,224,208,.85); letter-spacing:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .hist-ep { margin-top:3px; font-size:10px; letter-spacing:3px; color:rgba(212,175,55,.45); text-transform:uppercase; }
+    .hist-time { font-size:9px; letter-spacing:2px; color:rgba(212,175,55,.3); text-transform:uppercase; white-space:nowrap; }
+    .empty-msg { font-size:12px; letter-spacing:3px; color:rgba(212,175,55,.3); text-transform:uppercase; padding:16px 0; }
+
+    /* ── Action buttons ── */
+    .actions-grid{ grid-template-columns:repeat(3,1fr);}
+    .action-btn { background:rgba(255,255,255,.025); border:1px solid rgba(212,175,55,.2); border-left:3px solid var(--crimson); color:rgba(232,224,208,.8); padding:14px 16px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; text-align:left; display:flex; align-items:center; gap:10px; transition:.2s; text-decoration:none; }
+    .action-btn .ti { font-size:16px; color:rgba(196,30,58,.8); }
+    .action-btn:hover { background:rgba(139,0,0,.3); border-color:rgba(212,175,55,.5); border-left-color:var(--gold); color:var(--gold-l); transform:translateX(3px); }
+    .action-btn:hover .ti { color:var(--gold-l); }
+
+    /* ── Danger zone ── */
+    .danger-zone { margin-bottom:0; }
+    .logout-form { width:100%; }
+    .logout-btn { width:100%; background:rgba(139,0,0,.15); border:1px solid rgba(196,30,58,.3); border-left:3px solid var(--blood); color:rgba(196,30,58,.8); padding:14px 16px; cursor:pointer; font-family:'Rajdhani',sans-serif; font-size:12px; font-weight:700; letter-spacing:2px; text-transform:uppercase; text-align:left; display:flex; align-items:center; gap:10px; transition:.2s; }
+    .logout-btn .ti { font-size:16px; }
+    .logout-btn:hover { background:rgba(139,0,0,.4); border-color:var(--blood); color:#ff4444; }
+
+    /* ── Modal overlay ── */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:100; align-items:center; justify-content:center; padding:20px; }
+    .modal-bg.open { display:flex; }
+    .modal { background:#111; border:1px solid rgba(212,175,55,.25); border-top:2px solid var(--blood); max-width:420px; width:100%; padding:32px; position:relative; }
+    .modal::before { content:''; position:absolute; top:0;left:0;right:0; height:1px; background:linear-gradient(90deg,transparent,var(--gold),transparent); }
+    .modal-title { font-family:'Cinzel Decorative',cursive; font-size:14px; color:var(--gold); letter-spacing:2px; margin-bottom:24px; }
+    .modal-close { position:absolute; top:16px; right:16px; background:none; border:none; color:rgba(212,175,55,.5); cursor:pointer; font-size:20px; font-family:'Rajdhani',sans-serif; }
+    .modal-close:hover { color:var(--gold); }
+    .field-label { display:block; font-size:10px; letter-spacing:3px; color:rgba(212,175,55,.7); text-transform:uppercase; margin-bottom:8px; }
+    .slash-input { width:100%; background:rgba(255,255,255,.03); border:1px solid rgba(212,175,55,.2); border-left:3px solid var(--blood); color:#e8e0d0; font-family:'Rajdhani',sans-serif; font-size:15px; font-weight:600; padding:12px 16px; outline:none; transition:all .2s; letter-spacing:1px; margin-bottom:16px; }
+    .slash-input:focus { border-color:rgba(212,175,55,.5); border-left-color:var(--gold); background:rgba(212,175,55,.04); }
+    .slash-btn { width:100%; margin-top:8px; padding:14px; background:linear-gradient(135deg,var(--crimson),var(--blood)); border:1px solid var(--blood); color:var(--gold-l); font-family:'Cinzel Decorative',cursive; font-size:12px; letter-spacing:3px; cursor:pointer; text-transform:uppercase; transition:all .15s; }
+    .slash-btn:hover { background:linear-gradient(135deg,var(--blood),#E8002D); }
+    .flash-msg { padding:10px 14px; margin-bottom:16px; font-size:11px; letter-spacing:2px; text-transform:uppercase; border-left:3px solid; }
+    .flash-msg.error   { background:rgba(139,0,0,.2); border-color:var(--blood); color:#ff8888; }
+    .flash-msg.success { background:rgba(30,80,30,.2); border-color:#3a8a3a; color:#88cc88; }
+
+    /* ── Footer ── */
+    .footer-strip { display:flex; justify-content:space-between; align-items:center; padding:10px 28px; margin-top:28px; background:rgba(139,0,0,.1); border-top:1px solid rgba(212,175,55,.1); font-size:9px; letter-spacing:3px; color:rgba(212,175,55,.35); text-transform:uppercase; }
+    .pulse-dot { display:inline-block; width:5px; height:5px; background:var(--blood); border-radius:50%; animation:pulse 2s ease-in-out infinite; vertical-align:middle; margin-right:5px; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(.6)} }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ FLASH MESSAGES ══════════ -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div style="position:fixed;top:20px;right:20px;z-index:200;max-width:320px;">
+      {% for cat, msg in messages %}
+        <div class="flash-msg {{ cat }}">{{ msg }}</div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+<!-- ══════════ PROFILE ══════════ -->
+<div class="ds-root">
+
+  <div class="flame-bar"></div>
+
+  <div class="header-band">
+    <div>
+      <div class="corps-label">Demon Slayer Corps</div>
+      <div class="corps-title">鬼滅の刃</div>
+    </div>
+    <div class="rank-badge">
+      {% if current_user.role == 'admin' %}HASHIRA — ADMIN{% else %}RANK: KANOE{% endif %}
+    </div>
+  </div>
+
+  <div class="profile-body">
+
+    <!-- Identity -->
+    <div class="identity-row">
+      <div class="avatar-wrap">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" stroke="#D4AF37" stroke-width="1" fill="none" opacity="0.35"/>
+          <polygon points="50,15 58,38 83,38 63,53 71,76 50,62 29,76 37,53 17,38 42,38" stroke="#C41E3A" stroke-width="0.5" fill="none" opacity="0.2"/>
+        </svg>
+        <div class="avatar-inner">🗡️</div>
+      </div>
+      <div>
+        <div class="hunter-name">{{ current_user.username|upper }}</div>
+        <div class="hunter-email">{{ current_user.email }}</div>
+        <div class="hunter-sub">ID #{{ '%04d'|format(current_user.id) }}</div>
+        <span class="role-badge {{ current_user.role }}">{{ current_user.role|upper }}</span>
+      </div>
+      <div class="mark-icon">⛩</div>
+    </div>
+
+    <!-- Stats — real data from DB -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <i class="ti ti-heart" aria-hidden="true"></i>
+        <div class="stat-val">{{ current_user.favorites|length }}</div>
+        <div class="stat-label">Favorites</div>
+      </div>
+      <div class="stat-card">
+        <i class="ti ti-eye" aria-hidden="true"></i>
+        <div class="stat-val">{{ current_user.history|length }}</div>
+        <div class="stat-label">Episodes</div>
+      </div>
+      <div class="stat-card">
+        <i class="ti ti-device-tv" aria-hidden="true"></i>
+        <div class="stat-val">{{ current_user.history|map(attribute='anime_id')|list|unique|list|length }}</div>
+        <div class="stat-label">Anime Seen</div>
+      </div>
+      <div class="stat-card">
+        <i class="ti ti-calendar" aria-hidden="true"></i>
+        <div class="stat-val">{{ current_user.created_at.strftime('%y') }}</div>
+        <div class="stat-label">Joined</div>
+      </div>
+    </div>
+
+    <!-- Account Info -->
+    <div class="section-divider">
+      <div class="sec-line"></div>
+      <div class="sec-title">Account Info</div>
+      <div class="sec-glyph">身</div>
+    </div>
+    <div class="info-row">
+      <div class="info-card">
+        <div class="ic-title">Username</div>
+        <div class="ic-val">{{ current_user.username }}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-title">Email</div>
+        <div class="ic-val">{{ current_user.email }}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-title">Member Since</div>
+        <div class="ic-val">{{ current_user.created_at.strftime('%d %b %Y') }}</div>
+      </div>
+      <div class="info-card">
+        <div class="ic-title">Role</div>
+        <div class="ic-val">{{ current_user.role|capitalize }}</div>
+      </div>
+    </div>
+
+    <!-- Progression bar (based on episodes watched) -->
+    <div class="section-divider">
+      <div class="sec-line"></div>
+      <div class="sec-title">Progression</div>
+      <div class="sec-glyph">道</div>
+    </div>
+    <div class="xp-section">
+      {% set ep_count = current_user.history|length %}
+      {% set next_rank = 50 %}
+      {% set pct = [((ep_count / next_rank) * 100)|int, 100]|min %}
+      <div class="xp-bar-wrap">
+        <div class="xp-bar-fill" style="width:{{ pct }}%"></div>
+      </div>
+      <div class="xp-labels">
+        <span>{{ ep_count }} episodes watched</span>
+        <span>{{ pct }}% — next rank at {{ next_rank }}</span>
+      </div>
+    </div>
+
+    <!-- Recent Watch History -->
+    <div class="section-divider">
+      <div class="sec-line"></div>
+      <div class="sec-title">Recently Watched</div>
+      <div class="sec-glyph">眼</div>
+    </div>
+    <div class="history-list">
+      {% set recent = current_user.history|sort(attribute='watched_at', reverse=True) %}
+      {% if recent %}
+        {% for entry in recent[:5] %}
+        <div class="history-item">
+          {% if entry.anime_image %}
+            <img class="hist-img" src="{{ entry.anime_image }}" alt="{{ entry.anime_name }}" loading="lazy" />
+          {% else %}
+            <div class="hist-img" style="display:flex;align-items:center;justify-content:center;font-size:18px;">🗡️</div>
+          {% endif %}
+          <div class="hist-info">
+            <div class="hist-name">{{ entry.anime_name }}</div>
+            <div class="hist-ep">Episode {{ entry.episode }}</div>
+          </div>
+          <div class="hist-time">{{ entry.watched_at.strftime('%d %b') }}</div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-msg">No episodes watched yet</div>
+      {% endif %}
+    </div>
+
+    <!-- Hunter Actions -->
+    <div class="section-divider">
+      <div class="sec-line"></div>
+      <div class="sec-title">Hunter Actions</div>
+      <div class="sec-glyph">命</div>
+    </div>
+    <div class="actions-grid">
+      <button class="action-btn" onclick="openModal('modal-username')">
+        <i class="ti ti-pencil" aria-hidden="true"></i>Edit Username
+      </button>
+      <button class="action-btn" onclick="openModal('modal-email')">
+        <i class="ti ti-mail" aria-hidden="true"></i>Edit Email
+      </button>
+      <button class="action-btn" onclick="openModal('modal-password')">
+        <i class="ti ti-lock" aria-hidden="true"></i>Change Password
+      </button>
+      <a class="action-btn" href="{{ url_for('favorites_page') }}">
+        <i class="ti ti-heart" aria-hidden="true"></i>My Favorites
+      </a>
+      <a class="action-btn" href="{{ url_for('history_page') }}">
+        <i class="ti ti-history" aria-hidden="true"></i>Full History
+      </a>
+      {% if current_user.role == 'admin' %}
+      <a class="action-btn" href="{{ url_for('admin_users') }}">
+        <i class="ti ti-users" aria-hidden="true"></i>Manage Users
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- Logout -->
+    <div class="section-divider">
+      <div class="sec-line"></div>
+      <div class="sec-title">Session</div>
+      <div class="sec-glyph">去</div>
+    </div>
+    <div class="danger-zone" style="margin-bottom:0">
+      <form class="logout-form" method="POST" action="{{ url_for('logout') }}">
+        <button type="submit" class="logout-btn">
+          <i class="ti ti-logout" aria-hidden="true"></i>Leave the Corps — Log Out
+        </button>
+      </form>
+    </div>
+
+  </div><!-- /.profile-body -->
+
+  <div class="footer-strip">
+    <span><span class="pulse-dot"></span>Corps Registry Active</span>
+    <span>鬼滅の刃 — ID #{{ '%04d'|format(current_user.id) }}</span>
+    <span>{{ current_user.created_at.strftime('%Y') }}</span>
+  </div>
+
+</div><!-- /.ds-root -->
+
+
+<!-- ══════════ MODALS ══════════ -->
+
+<!-- Edit Username -->
+<div class="modal-bg" id="modal-username">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-username')">✕</button>
+    <div class="modal-title">Edit Username</div>
+    <form method="POST" action="{{ url_for('edit_username') }}">
+      <label class="field-label">New Username</label>
+      <input class="slash-input" type="text" name="username" placeholder="{{ current_user.username }}" autocomplete="off" />
+      <button class="slash-btn" type="submit">Confirm</button>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Email -->
+<div class="modal-bg" id="modal-email">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-email')">✕</button>
+    <div class="modal-title">Edit Email</div>
+    <form method="POST" action="{{ url_for('edit_email') }}">
+      <label class="field-label">New Email</label>
+      <input class="slash-input" type="email" name="email" placeholder="{{ current_user.email }}" autocomplete="off" />
+      <button class="slash-btn" type="submit">Confirm</button>
+    </form>
+  </div>
+</div>
+
+<!-- Change Password -->
+<div class="modal-bg" id="modal-password">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-password')">✕</button>
+    <div class="modal-title">Change Password</div>
+    <form method="POST" action="{{ url_for('change_password') }}">
+      <label class="field-label">Current Password</label>
+      <input class="slash-input" type="password" name="current_password" placeholder="••••••••" />
+      <label class="field-label">New Password</label>
+      <input class="slash-input" type="password" name="new_password" placeholder="••••••••" />
+      <label class="field-label">Confirm New Password</label>
+      <input class="slash-input" type="password" name="confirm_password" placeholder="••••••••" />
+      <button class="slash-btn" type="submit">Confirm</button>
+    </form>
+  </div>
+</div>
+
+
+<script>
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  document.querySelectorAll('.modal-bg').forEach(bg => {
+    bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+  });
+
+  // Auto-open modal if flash message present (after form submit)
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}
+      {% if 'username' in msg|lower %}openModal('modal-username');{% endif %}
+      {% if 'email' in msg|lower %}openModal('modal-email');{% endif %}
+      {% if 'password' in msg|lower %}openModal('modal-password');{% endif %}
+    {% endfor %}
+  {% endwith %}
+</script>
+
+</body>
+</html>
+{% endblock %}

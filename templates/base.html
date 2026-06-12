@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+{% block title %}
+Anime FINDER
+{% endblock %}
+</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+
+<style>
+
+:root {
+  --crimson:      #8B0000;
+  --blood:        #C41E3A;
+  --gold:         #D4AF37;
+  --gold-light:   #FFD700;
+  --ink:          #0D0D0D;
+  --ink2:         #141414;
+  --ink3:         #1A1A1A;
+  --border:       rgba(212,175,55,.18);
+  --text-muted:   rgba(212,175,55,.55);
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--ink);
+  color: #e8e0d0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── GRID OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(139,0,0,.12) 0%, transparent 65%),
+    repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(212,175,55,.012) 80px, rgba(212,175,55,.012) 81px),
+    repeating-linear-gradient(0deg,  transparent, transparent 80px, rgba(212,175,55,.012) 80px, rgba(212,175,55,.012) 81px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--ink); }
+::-webkit-scrollbar-thumb { background: var(--crimson); }
+::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+
+/* ═══════════════════════════════
+   NAVBAR
+═══════════════════════════════ */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  background: rgba(13,13,13,.96);
+  border-bottom: 1px solid rgba(212,175,55,.25);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+/* ── flame line at very top ── */
+.navbar::before {
+  content: '';
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg, var(--ink), var(--crimson), var(--gold), var(--crimson), var(--ink));
+  animation: flicker 3s ease-in-out infinite;
+}
+
+@keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+/* sys-bar */
+.navbar-sysbar {
+  background: rgba(139,0,0,.25);
+  border-bottom: 1px solid rgba(212,175,55,.12);
+  color: rgba(212,175,55,.65);
+  font-size: 10px;
+  padding: 3px 24px;
+  display: flex;
+  justify-content: space-between;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+/* main nav row */
+.navbar-main {
+  padding: 0 24px;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  height: 52px;
+}
+
+/* LOGO */
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  padding-right: 24px;
+  border-right: 1px solid var(--border);
+  margin-right: 16px;
+}
+
+.nav-logo img {
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  border: 1px solid rgba(212,175,55,.4);
+}
+
+.nav-logo-text {
+  font-family: 'Cinzel Decorative', cursive;
+  font-size: 17px;
+  font-weight: 900;
+  color: transparent;
+  background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 50%, var(--blood) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  letter-spacing: 1px;
+}
+
+/* LINKS */
+.nav-left  { display: flex; align-items: center; }
+.nav-links { display: flex; align-items: stretch; gap: 0; }
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  text-decoration: none;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  border-right: 1px solid var(--border);
+  transition: color .2s, background .2s;
+  position: relative;
+}
+
+.nav-links a:first-child { border-left: 1px solid var(--border); }
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform .2s;
+}
+
+.nav-links a:hover { color: #e8e0d0; background: rgba(212,175,55,.04); }
+.nav-links a:hover::after { transform: scaleX(1); }
+
+.nav-links a.active {
+  color: var(--gold-light);
+  background: rgba(139,0,0,.2);
+}
+
+.nav-links a.active::after { transform: scaleX(1); background: var(--blood); }
+
+.nav-links a i { font-size: 15px; }
+
+/* RIGHT */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-user {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 1.5px;
+  padding: 0 14px;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  text-transform: uppercase;
+}
+
+.nav-user span { color: var(--gold-light); font-weight: 700; margin-left: 4px; }
+
+/* NAV BUTTONS */
+.nav-btn {
+  padding: 7px 14px;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all .15s;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-login {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.btn-login:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(212,175,55,.06);
+}
+
+.btn-register {
+  background: linear-gradient(135deg, var(--crimson), var(--blood));
+  color: var(--gold-light);
+  border: 1px solid var(--blood);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-register::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(212,175,55,.2), transparent);
+  transition: left .35s;
+}
+
+.btn-register:hover::before { left: 100%; }
+.btn-register:hover {
+  box-shadow: 0 0 14px rgba(196,30,58,.5);
+  transform: translateY(-1px);
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
+.btn-logout:hover {
+  border-color: var(--blood);
+  color: var(--blood);
+  background: rgba(139,0,0,.1);
+}
+
+/* ── CONTENT ── */
+.content-wrapper {
+  margin-top: 81px; /* 2px flame + 26px sysbar + 52px main + 1px border */
+  min-height: calc(100vh - 81px);
+}
+
+/* ── FOOTER ── */
+.site-footer {
+  border-top: 1px solid rgba(212,175,55,.15);
+  padding: 10px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+  color: rgba(212,175,55,.35);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  background: rgba(139,0,0,.08);
+  font-family: 'Rajdhani', sans-serif;
+}
+
+.footer-sword { color: rgba(212,175,55,.25); font-size: 14px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .navbar-main { padding: 0 12px; height: 48px; }
+  .nav-links a { padding: 0 10px; font-size: 11px; letter-spacing: 1px; }
+  .nav-logo-text { font-size: 13px; }
+  .navbar-sysbar { font-size: 9px; padding: 3px 12px; }
+  .content-wrapper { margin-top: 77px; }
+}
+
+@media (max-width: 500px) {
+  .nav-links a span { display: none; }
+  .nav-links a { padding: 0 12px; }
+  .nav-user-text { display: none; }
+}
+
+</style>
+
+</head>
+<body>
+
+{% if request.endpoint not in ['login', 'register'] %}
+
+<nav class="navbar">
+
+  <!-- SYS BAR -->
+  <div class="navbar-sysbar">
+    <span>ANIMEFINDER.NET &nbsp;刀&nbsp; SYS:ONLINE &nbsp;刀&nbsp; DB:CONNECTED</span>
+    <span id="nav-clock">00:00:00</span>
+  </div>
+
+  <!-- MAIN ROW -->
+  <div class="navbar-main">
+
+    <div class="nav-left">
+      <!-- LOGO -->
+      <a href="/" class="nav-logo">
+        <img src="/static/logo.png" alt="logo">
+        <div class="nav-logo-text">Anime FINDER</div>
+      </a>
+
+      <!-- LINKS -->
+      <div class="nav-links">
+        <a href="/" class="{% if request.endpoint=='home' %}active{% endif %}">
+          <i class="ti ti-home" aria-hidden="true"></i>
+          <span>Home</span>
+        </a>
+
+        {% if current_user.is_authenticated %}
+        <a href="/favorites" class="{% if request.endpoint=='favorites' %}active{% endif %}">
+          <i class="ti ti-heart" aria-hidden="true"></i>
+          <span>Favorites</span>
+        </a>
+        <a href="/history" class="{% if request.endpoint=='history' %}active{% endif %}">
+          <i class="ti ti-clock" aria-hidden="true"></i>
+          <span>History</span>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="nav-right">
+      {% if current_user.is_authenticated %}
+      <a href="{{ url_for('profile') }}" class="nav-user" class="nav-user">
+        <span class="nav-user-text">HUNTER:</span>
+        <span>{{ current_user.username | upper }}</span>
+      </a>
+      <a href="/logout" class="nav-btn btn-logout">
+        <i class="ti ti-power" aria-hidden="true"></i>
+        <span>Logout</span>
+      </a>
+      {% else %}
+      <a href="/login" class="nav-btn btn-login">
+        <i class="ti ti-login" aria-hidden="true"></i>
+        <span>Login</span>
+      </a>
+      <a href="/register" class="nav-btn btn-register">
+        <i class="ti ti-user-plus" aria-hidden="true"></i>
+        <span>Register</span>
+      </a>
+      {% endif %}
+    </div>
+    {% if current_user.role == "admin" %}
+    <a href="/admin/users">Admin Panel</a>
+{% endif %}
+
+  </div>
+</nav>
+
+{% endif %}
+
+<div class="content-wrapper">
+  {% block content %}
+  {% endblock %}
+</div>
+
+<footer class="site-footer">
+  <span>ANIMEFINDER.NET &nbsp;<span class="footer-sword">刀</span>&nbsp; EST. 2026</span>
+  <span class="footer-sword">⛩</span>
+  <span>&copy; {{ 2026 }} &nbsp;刀&nbsp; ALL RIGHTS RESERVED</span>
+</footer>
+
+<script>
+  function tick() {
+    const el = document.getElementById('nav-clock');
+    if (!el) return;
+    const n = new Date();
+    el.textContent = [n.getHours(), n.getMinutes(), n.getSeconds()]
+      .map(v => String(v).padStart(2,'0')).join(':');
+  }
+  tick();
+  setInterval(tick, 1000);
+</script>
+
+</body>
+</html>

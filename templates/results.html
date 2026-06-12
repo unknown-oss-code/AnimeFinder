@@ -1,0 +1,571 @@
+{% extends "base.html" %}
+
+{% block title %}Results — Anime Slayer{% endblock %}
+
+{% block content %}
+
+<style>
+  :root {
+    --crimson: #8B0000;
+    --blood:   #C41E3A;
+    --gold:    #D4AF37;
+    --gold-light: #FFD700;
+    --ink:     #0D0D0D;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,0,0,0.18) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(212,175,55,0.015) 80px, rgba(212,175,55,0.015) 81px),
+      repeating-linear-gradient(0deg,  transparent, transparent 80px, rgba(212,175,55,0.015) 80px, rgba(212,175,55,0.015) 81px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SEARCH ZONE ── */
+  .search-zone {
+    position: relative;
+    z-index: 5;
+    max-width: 760px;
+    margin: 40px auto 0;
+    padding: 0 20px;
+  }
+
+  .panel {
+    background: rgba(13,13,13,0.95);
+    border: 1px solid rgba(212,175,55,0.25);
+    padding: 28px 32px;
+    position: relative;
+  }
+
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--blood), var(--gold), var(--blood), transparent);
+  }
+
+  .panel-label {
+    position: absolute;
+    top: -13px; left: 28px;
+    background: var(--ink);
+    padding: 0 12px;
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .corner-dec { position: absolute; width: 14px; height: 14px; border-color: var(--gold); border-style: solid; opacity: 0.5; }
+  .corner-dec.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .corner-dec.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .corner-dec.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .corner-dec.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .field-label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(212,175,55,0.7);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .slash-input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-left: 3px solid var(--blood);
+    color: #e8e0d0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    padding: 11px 16px;
+    outline: none;
+    transition: all 0.2s;
+    letter-spacing: 1px;
+  }
+
+  .slash-input:focus {
+    border-color: rgba(212,175,55,0.5);
+    border-left-color: var(--gold);
+    background: rgba(212,175,55,0.04);
+  }
+
+  .slash-input::placeholder { color: rgba(232,224,208,0.25); font-weight: 400; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 18px; }
+
+  .slash-select {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(212,175,55,0.2);
+    border-left: 3px solid var(--crimson);
+    color: #e8e0d0;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 14px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    letter-spacing: 1px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7'%3E%3Cpath d='M0 0l5 7 5-7z' fill='%23D4AF37'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: left 12px center;
+    transition: border-color 0.2s;
+  }
+
+  .slash-select:focus { border-left-color: var(--gold); }
+  .slash-select option { background: #1a1a1a; }
+
+  .format-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+  .format-pill {
+    display: flex;
+    align-items: center;
+    padding: 6px 14px;
+    border: 1px solid rgba(212,175,55,0.25);
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(212,175,55,0.6);
+    background: transparent;
+    transition: all 0.15s;
+    user-select: none;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    position: relative;
+  }
+
+  .format-pill input { display: none; }
+
+  .format-pill.active {
+    background: rgba(139,0,0,0.4);
+    color: var(--gold-light);
+    border-color: var(--blood);
+  }
+
+  .format-pill.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  .slash-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--crimson), var(--blood));
+    border: 1px solid var(--blood);
+    color: var(--gold-light);
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 13px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slash-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; bottom: 0; width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+    transition: left 0.4s;
+  }
+
+  .slash-btn:hover::before { left: 100%; }
+  .slash-btn:hover {
+    box-shadow: 0 0 20px rgba(196,30,58,0.4);
+    transform: translateY(-1px);
+  }
+
+  /* ── RESULTS HEADER ── */
+  .results-header {
+    position: relative;
+    z-index: 5;
+    max-width: 1600px;
+    margin: 48px auto 0;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .results-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 13px;
+    color: var(--gold);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .results-count {
+    font-size: 11px;
+    color: rgba(212,175,55,0.45);
+    letter-spacing: 2px;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .head-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(212,175,55,0.3), transparent);
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    position: relative;
+    z-index: 5;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    padding: 28px 40px 60px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: rgba(26,26,26,0.95);
+    border: 1px solid rgba(212,175,55,0.12);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--crimson), var(--gold), var(--crimson));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(212,175,55,0.4);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 36px rgba(139,0,0,0.35);
+  }
+
+  .card:hover::after { opacity: 1; }
+
+  .thumb {
+    width: 100%;
+    height: 300px;
+    background: #111;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+  }
+
+  .card:hover .thumb img { transform: scale(1.04); }
+
+  .thumb::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.9) 100%);
+  }
+
+  .score-tag {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(139,0,0,0.92);
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    letter-spacing: 1px;
+    z-index: 1;
+  }
+
+  .card-info {
+    padding: 12px 14px 8px;
+    border-top: 1px solid rgba(212,175,55,0.1);
+    flex: 1;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e8e0d0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .card-genres {
+    font-size: 11px;
+    color: rgba(212,175,55,0.45);
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ── ACTION BUTTONS ── */
+  .btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    padding: 0 14px 14px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 9px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-decoration: none;
+    text-align: center;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-episodes {
+    background: rgba(139,0,0,0.3);
+    border: 1px solid rgba(196,30,58,0.5);
+    color: #e8e0d0;
+  }
+
+  .btn-episodes:hover {
+    background: var(--blood);
+    border-color: var(--blood);
+    color: var(--gold-light);
+  }
+
+  .btn-youtube {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(212,175,55,0.2);
+    color: rgba(212,175,55,0.7);
+  }
+
+  .btn-youtube:hover {
+    background: rgba(212,175,55,0.1);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .btn-fav {
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.2);
+    color: rgba(212,175,55,0.5);
+  }
+
+  .btn-fav:hover {
+    background: rgba(212,175,55,0.08);
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .btn-fav:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+  }
+
+  /* ── EMPTY STATE ── */
+  .empty-state {
+    position: relative;
+    z-index: 5;
+    text-align: center;
+    padding: 80px 24px;
+    color: rgba(212,175,55,0.35);
+  }
+
+  .empty-kanji {
+    font-size: 64px;
+    opacity: 0.2;
+    display: block;
+    margin-bottom: 16px;
+  }
+
+  .empty-text {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 14px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    position: relative;
+    z-index: 5;
+    background: rgba(139,0,0,0.12);
+    border-top: 1px solid rgba(212,175,55,0.15);
+    padding: 8px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(212,175,55,0.45);
+    text-transform: uppercase;
+    font-family: 'Rajdhani', sans-serif;
+  }
+
+  .pulse {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--blood);
+    border-radius: 50%;
+    animation: pulse 2s ease-in-out infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(139,0,0,0.95);
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    padding: 12px 22px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    z-index: 9999;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn { from { opacity:0; transform: translateY(10px); } to { opacity:1; transform: translateY(0); } }
+</style>
+
+
+<!-- ── RESULTS ── -->
+{% if results %}
+
+<div class="results-header">
+  <span style="color: rgba(212,175,55,0.3); font-size: 18px;">刀</span>
+  <h2 class="results-title">Hunt Results</h2>
+  <span class="results-count">{{ results | length }} TARGETS FOUND</span>
+  <div class="head-line"></div>
+</div>
+
+<div class="cards">
+  {% for anime in results %}
+  <div class="card" onclick="window.location='/anime/{{ anime['anime_id'] }}'">
+
+    <div class="thumb">
+      <img src="{{ anime['image_url'] }}" alt="{{ anime['name'] }}" loading="lazy">
+      <span class="score-tag">⭐ {{ anime['score'] }}</span>
+    </div>
+
+    <div class="card-info">
+      <div class="card-title">{{ anime['name'] }}</div>
+      <div class="card-genres">{{ anime['genres'] }}</div>
+    </div>
+
+    <div class="btn-group" onclick="event.stopPropagation()">
+      <a class="btn btn-episodes" href="/episodes/{{ anime['anime_id'] }}">
+        📺 &nbsp;Episodes
+      </a>
+      <a class="btn btn-youtube"
+         href="https://www.youtube.com/results?search_query={{ anime['name'] }} trailer"
+         target="_blank">
+        ▶ &nbsp;Trailer
+      </a>
+      <button class="btn btn-fav"
+              onclick="addFav({{ anime['anime_id'] }}, this)">
+        ♡ &nbsp;Add Favorite
+      </button>
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+
+<div class="empty-state">
+  <span class="empty-kanji">⛩</span>
+  <p class="empty-text">No targets found — refine your hunt</p>
+</div>
+
+{% endif %}
+
+<div class="status-bar">
+  <span><span class="pulse"></span> SCAN COMPLETE</span>
+  <span>{{ results | length }} RESULTS</span>
+  <span>ANIMESLAYER.NET</span>
+</div>
+
+<script>
+  /* ── pill click ── */
+  document.querySelectorAll('.format-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.format-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  });
+
+  /* ── add favorite ── */
+  function addFav(id, btn) {
+    event.stopPropagation();
+    fetch('/add_favorite/' + id, { method: 'POST' })
+      .then(r => r.json())
+      .then(data => {
+        if (data.status === 'ok' || data.status === 'exists') {
+          showToast(data.status === 'ok' ? '♡ Added to favorites' : '已 Already saved');
+          btn.textContent = '♥ Saved';
+          btn.disabled = true;
+        }
+      });
+  }
+
+  /* ── toast ── */
+  function showToast(msg) {
+    const t = document.createElement('div');
+    t.className = 'toast';
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2500);
+  }
+</script>
+
+{% endblock %}

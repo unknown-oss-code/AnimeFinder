@@ -1,0 +1,332 @@
+{% extends "base.html" %}
+{% block title %}Favorites — Anime Slayer{% endblock %}
+{% block content %}
+
+<style>
+  :root {
+    --crimson: #8B0000;
+    --blood:   #C41E3A;
+    --gold:    #D4AF37;
+    --gold-light: #FFD700;
+    --ink:     #0D0D0D;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,0,0,0.15) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(212,175,55,0.012) 80px, rgba(212,175,55,0.012) 81px),
+      repeating-linear-gradient(0deg,  transparent, transparent 80px, rgba(212,175,55,0.012) 80px, rgba(212,175,55,0.012) 81px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .fav-container {
+    position: relative;
+    z-index: 5;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 30px 80px;
+  }
+
+  /* ── HEADER ── */
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 36px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(212,175,55,0.12);
+  }
+
+  .header-kanji { font-size: 22px; color: rgba(212,175,55,0.3); }
+
+  .page-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 18px;
+    color: transparent;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    letter-spacing: 2px;
+  }
+
+  .fav-count {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    color: rgba(212,175,55,0.35);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .head-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(212,175,55,0.3), transparent);
+  }
+
+  /* ── GRID ── */
+  .fav-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 18px;
+  }
+
+  .fav-card {
+    background: rgba(20,20,20,0.95);
+    border: 1px solid rgba(212,175,55,0.12);
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fav-card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--crimson), var(--gold), var(--crimson));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .fav-card:hover {
+    border-color: rgba(212,175,55,0.35);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 32px rgba(139,0,0,0.3);
+  }
+
+  .fav-card:hover::after { opacity: 1; }
+
+  .fav-thumb {
+    width: 100%;
+    height: 270px;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+  }
+
+  .fav-card:hover .fav-thumb { transform: scale(1.04); }
+
+  .fav-thumb-wrap {
+    overflow: hidden;
+    position: relative;
+    flex-shrink: 0;
+  }
+
+  .fav-thumb-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 55%, rgba(0,0,0,0.85) 100%);
+  }
+
+  .score-tag {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: rgba(139,0,0,0.92);
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 3px 8px;
+    z-index: 1;
+    letter-spacing: 1px;
+  }
+
+  .fav-info {
+    padding: 12px 14px 8px;
+    border-top: 1px solid rgba(212,175,55,0.08);
+    flex: 1;
+  }
+
+  .fav-name {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e8e0d0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+  }
+
+  .fav-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 14px 14px;
+  }
+
+  .fav-btn-watch {
+    flex: 1;
+    padding: 9px;
+    background: linear-gradient(135deg, var(--crimson), var(--blood));
+    border: 1px solid var(--blood);
+    color: var(--gold-light);
+    text-decoration: none;
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .fav-btn-watch:hover { box-shadow: 0 0 14px rgba(196,30,58,0.4); }
+
+  .fav-btn-remove {
+    padding: 9px 12px;
+    background: transparent;
+    border: 1px solid rgba(196,30,58,0.25);
+    color: rgba(196,30,58,0.5);
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    transition: all 0.15s;
+  }
+
+  .fav-btn-remove:hover {
+    background: rgba(139,0,0,0.2);
+    border-color: var(--blood);
+    color: #e8e0d0;
+  }
+
+  /* ── EMPTY ── */
+  .empty-state {
+    text-align: center;
+    padding: 80px 20px;
+    border: 1px solid rgba(212,175,55,0.08);
+    background: rgba(13,13,13,0.6);
+    position: relative;
+  }
+
+  .empty-state::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.2), transparent);
+  }
+
+  .empty-kanji { display: block; font-size: 56px; color: rgba(212,175,55,0.1); margin-bottom: 20px; }
+
+  .empty-text {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: 12px;
+    color: rgba(212,175,55,0.3);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+  }
+
+  .browse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: linear-gradient(135deg, var(--crimson), var(--blood));
+    border: 1px solid var(--blood);
+    color: var(--gold-light);
+    text-decoration: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+  }
+
+  .browse-btn:hover { box-shadow: 0 0 18px rgba(196,30,58,0.4); transform: translateY(-1px); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 30px; right: 30px;
+    background: rgba(139,0,0,0.95);
+    border: 1px solid var(--gold);
+    color: var(--gold-light);
+    padding: 12px 22px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    display: none;
+    z-index: 9999;
+  }
+</style>
+
+<div class="fav-container">
+
+  <div class="page-header">
+    <span class="header-kanji">♥</span>
+    <h1 class="page-title">Favorites</h1>
+    {% if favorites %}
+    <span class="fav-count">{{ favorites | length }} saved</span>
+    {% endif %}
+    <div class="head-line"></div>
+  </div>
+
+  {% if favorites %}
+  <div class="fav-grid">
+    {% for fav in favorites %}
+    <div class="fav-card">
+      <div class="fav-thumb-wrap">
+        <img class="fav-thumb" src="{{ fav.anime_image }}" alt="{{ fav.anime_name }}" loading="lazy">
+        <span class="score-tag">⭐ {{ fav.anime_score }}</span>
+      </div>
+      <div class="fav-info">
+        <div class="fav-name">{{ fav.anime_name }}</div>
+      </div>
+      <div class="fav-actions">
+        <a href="/anime/{{ fav.anime_id }}" class="fav-btn-watch">⚔ Watch</a>
+        <button class="fav-btn-remove" onclick="removeFav({{ fav.anime_id }}, this)" title="Remove">✕</button>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="empty-state">
+    <span class="empty-kanji">⛩</span>
+    <p class="empty-text">No favorites saved yet</p>
+    <a href="/" class="browse-btn">⚔ &nbsp;Discover Anime</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 2500);
+}
+
+function removeFav(id, btn) {
+  fetch('/remove_favorite/' + id, { method: 'POST' })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'ok') {
+        showToast('✕ Removed from favorites');
+        const card = btn.closest('.fav-card');
+        card.style.transition = 'opacity 0.3s, transform 0.3s';
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.95)';
+        setTimeout(() => card.remove(), 320);
+      }
+    });
+}
+</script>
+
+{% endblock %}

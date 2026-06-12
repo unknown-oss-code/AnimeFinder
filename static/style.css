@@ -1,0 +1,13 @@
+body{
+    font-family: Arial;
+    background:#111;
+    color:white;
+}
+
+img{
+    border-radius:10px;
+}
+
+div{
+    margin:10px;
+}

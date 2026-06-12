@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+{% block title %}Episode {{ episode }} — Anime Slayer{% endblock %}
+{% block content %}
+
+<style>
+  :root {
+    --crimson: #8B0000;
+    --blood:   #C41E3A;
+    --gold:    #D4AF37;
+    --gold-light: #FFD700;
+    --ink:     #0D0D0D;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 0%, rgba(139,0,0,0.15) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, transparent, transparent 80px, rgba(212,175,55,0.012) 80px, rgba(212,175,55,0.012) 81px),
+      repeating-linear-gradient(0deg,  transparent, transparent 80px, rgba(212,175,55,0.012) 80px, rgba(212,175,55,0.012) 81px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .watch-container {
+    position: relative;
+    z-index: 5;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 30px 60px;
+  }
+
+  /* ── BACK ── */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.25);
+    color: rgba(212,175,55,0.6);
+    text-decoration: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .back-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(212,175,55,0.05);
+  }
+
+  /* ── EPISODE TITLE ── */
+  .watch-title {
+    font-family: 'Cinzel Decorative', cursive;
+    font-size: clamp(16px, 3vw, 26px);
+    color: transparent;
+    background: linear-gradient(135deg, var(--gold-light), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    margin-bottom: 20px;
+    line-height: 1.3;
+    letter-spacing: 1px;
+  }
+
+  .ep-num {
+    color: rgba(212,175,55,0.4);
+    font-size: 0.75em;
+    margin-right: 10px;
+  }
+
+  .filler-badge {
+    display: inline-block;
+    background: rgba(139,0,0,0.5);
+    border: 1px solid var(--blood);
+    color: var(--gold-light);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    vertical-align: middle;
+    margin-left: 10px;
+  }
+
+  /* ── PLAYER ── */
+  .player-shell {
+    position: relative;
+    border: 1px solid rgba(212,175,55,0.2);
+    background: #000;
+  }
+
+  .player-shell::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--blood), var(--gold), var(--blood), transparent);
+    z-index: 1;
+  }
+
+  .corner-dec { position: absolute; width: 14px; height: 14px; border-color: var(--gold); border-style: solid; opacity: 0.4; z-index: 2; }
+  .corner-dec.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .corner-dec.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .corner-dec.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .corner-dec.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .player-wrapper {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+  }
+
+  .player-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+  }
+
+  /* ── SERVERS ── */
+  .servers-section {
+    margin-top: 24px;
+  }
+
+  .servers-label {
+    font-size: 10px;
+    letter-spacing: 4px;
+    color: rgba(212,175,55,0.5);
+    text-transform: uppercase;
+    font-family: 'Rajdhani', sans-serif;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .servers-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(212,175,55,0.2), transparent);
+  }
+
+  .servers-list { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .server-btn {
+    padding: 8px 18px;
+    border: 1px solid rgba(212,175,55,0.2);
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: transparent;
+    color: rgba(212,175,55,0.55);
+    transition: all 0.15s;
+    position: relative;
+  }
+
+  .server-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(212,175,55,0.06);
+  }
+
+  .server-btn.active {
+    background: rgba(139,0,0,0.4);
+    border-color: var(--blood);
+    color: var(--gold-light);
+  }
+
+  .server-btn.active::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: var(--gold);
+  }
+
+  /* ── NAV EPISODES ── */
+  .nav-episodes {
+    display: flex;
+    gap: 12px;
+    margin-top: 32px;
+    align-items: center;
+  }
+
+  .nav-ep-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    text-decoration: none;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .nav-ep-btn.prev {
+    background: transparent;
+    border: 1px solid rgba(212,175,55,0.25);
+    color: rgba(212,175,55,0.6);
+  }
+
+  .nav-ep-btn.prev:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(212,175,55,0.05);
+  }
+
+  .nav-ep-btn.next {
+    background: linear-gradient(135deg, var(--crimson), var(--blood));
+    border: 1px solid var(--blood);
+    color: var(--gold-light);
+  }
+
+  .nav-ep-btn.next::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; bottom: 0; width: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+    transition: left 0.4s;
+  }
+
+  .nav-ep-btn.next:hover::before { left: 100%; }
+  .nav-ep-btn.next:hover {
+    box-shadow: 0 0 18px rgba(196,30,58,0.4);
+    transform: translateY(-1px);
+  }
+
+  .ep-spacer { flex: 1; }
+
+  .episodes-link {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(212,175,55,0.4);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.2s;
+  }
+
+  .episodes-link:hover { color: var(--gold); }
+
+  /* ── TIP ── */
+  .tip {
+    margin-top: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: rgba(212,175,55,0.25);
+    text-transform: uppercase;
+  }
+</style>
+
+<div class="watch-container">
+
+  <!-- BACK -->
+  <a onclick="history.back()" class="back-btn">← Return</a>
+
+  <!-- TITLE -->
+  <h1 class="watch-title">
+    <span class="ep-num">EP.</span>{{ episode }}
+    {% if episode_info.title %} &nbsp;—&nbsp; {{ episode_info.title }}{% endif %}
+    {% if episode_info.filler %}<span class="filler-badge">Filler</span>{% endif %}
+  </h1>
+
+  <!-- PLAYER -->
+  <div class="player-shell">
+    <div class="corner-dec tl"></div>
+    <div class="corner-dec tr"></div>
+    <div class="corner-dec bl"></div>
+    <div class="corner-dec br"></div>
+    <div class="player-wrapper">
+      <iframe id="video-frame" src="" allowfullscreen allow="autoplay; fullscreen"></iframe>
+    </div>
+  </div>
+
+
+  <!-- NAV -->
+  <div class="nav-episodes">
+    {% if episode > 1 %}
+    <a href="/watch/{{ anime_id }}/{{ episode - 1 }}" class="nav-ep-btn prev">← Prev</a>
+    {% endif %}
+    <div class="ep-spacer"></div>
+    <a href="/episodes/{{ anime_id }}" class="episodes-link">[ All Episodes ]</a>
+    <div class="ep-spacer"></div>
+    <a href="/watch/{{ anime_id }}/{{ episode + 1 }}" class="nav-ep-btn next">Next →</a>
+  </div>
+
+  <p class="tip">刀 &nbsp;次の“お気に入り”が、あなたを待っている。</p>
+
+</div>
+
+<script>
+  var animeId = "{{ anime_id }}";
+  var ep      = "{{ episode }}";
+  var mode    = 'sub';
+
+  function loadPlayer() {
+    document.getElementById('video-frame').src =
+      "https://megaplay.buzz/stream/mal/" + animeId + "/" + ep + "/" + mode;
+  }
+
+  function setServer(type, btn) {
+    mode = type;
+    document.querySelectorAll('.server-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    loadPlayer();
+  }
+
+  loadPlayer();
+</script>
+
+{% endblock %}
