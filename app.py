@@ -31,7 +31,7 @@ import os
 # ================= APP =================
 app = Flask(__name__)
 app.secret_key = "animefinder-secret-key"
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///anime.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:////tmp/anime.db"
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
@@ -492,4 +492,4 @@ with app.app_context():
 # ================= RUN =================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
